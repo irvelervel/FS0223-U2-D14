@@ -14,7 +14,7 @@
   <body>
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">EpiTicket</a>
+        <a class="navbar-brand" href="./index.html">EpiTicket</a>
         <button
           class="navbar-toggler"
           type="button"
@@ -89,16 +89,22 @@
               <div class="col-12 col-md-3">
                 <div class="card">
                   <div class="card-body">
-                    <h5 class="card-title">Card title</h5>
+                    <h5 class="card-title">${event.name}</h5>
                     <p class="card-text">
-                      Some quick example text to build on the card title and make
-                      up the bulk of the card's content.
+                      ${event.description}
                     </p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
+                    <p>${new Date(event.time).toLocaleDateString('it-IT')} - ${
+                event.price
+              }€</p>
+                    <a href="./backoffice.html?eventId=${
+                      event._id
+                    }" class="btn btn-primary">MODIFICA</a>
                   </div>
                 </div>
               </div>
               `
+              // sto passando all'indirizzo ./backoffice.html UN PARAMETRO
+              // questo parametro è l'_id della risorsa che intenderò modificare!
 
               let rowReference = document.getElementById('events-container') // <div class="row"></div>
               rowReference.innerHTML += colTemplate // aggiungo colTemplate all'attuale contenuto di rowReference

@@ -19,7 +19,7 @@
   <body class="bg-dark">
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">EpiTicket</a>
+        <a class="navbar-brand" href="./index.html">EpiTicket</a>
         <button
           class="navbar-toggler"
           type="button"
@@ -100,6 +100,49 @@
       </div>
     </div>
     <script>
+      const AGENDA_URL = 'https://striveschool-api.herokuapp.com/api/agenda/'
+      // ora dobbiamo permettere all'admin di poter MODIFICARE UN EVENTO
+      // in caso di modifica, questa pagina verrà caricata con un parametro nell'indirizzo, l'_id
+      // dell'evento da modificare (l'abbiamo chiamato eventId)
+
+      // per questo motivo, questa pagina backoffice ora ha un doppio scopo:
+      // 1) può creare un evento da zero
+      // 2) se c'è il parametro eventId nell'indirizzo, potrà MODIFICARE una risorsa
+
+      // verifichiamo che ci sia o meno il parametro eventId nella barra degli indirizzi
+      // valore della barra degli indirizzi:
+      let addressBarContent = new URLSearchParams(window.location.search)
+      // dal valore della barra degli indirizzi ora cerco se esiste eventId
+      let eventId = addressBarContent.get('eventId')
+      // eventId può essere NULL oppure una stringa, l'id dell'evento da modificare
+      console.log('EVENTID', eventId)
+
+      if (eventId) {
+        // modalità MODIFICA
+        // ora che ho l'evento da modificare, devo fare una fetch() di tipo GET e recuperare i dettagli di questo evento!
+        // faccio una get specifica per ottenere i dettagli di un solo evento: l'evento con id eventId
+        fetch(AGENDA_URL + eventId)
+          .then((res) => {
+            if (res.ok) {
+              return res.json()
+            } else {
+              throw new Error("Errore nel recupero dell'evento")
+            }
+          })
+          .then((event) => {
+            console.log(
+              'DATI DEL SINGOLO EVENTO, RECUPERATO TRAMITE GET SINGOLA',
+              event
+            )
+          })
+          .catch((error) => {
+            console.log(error)
+          })
+        // https://striveschool-api.herokuapp.com/api/agenda/645cb817dfde320014cd7a54
+      } else {
+        // modalità CREAZIONE
+      }
+
       // questo form invierà un nuovo oggetto evento alle API di Epicode
       // l'oggetto che creiamo raccogliendo i dati dal form non può essere scritto a caso!
       // un oggetto di tipo "evento" di epiticket dev'essere fatto da determinate proprietà
@@ -129,13 +172,13 @@
         }
         console.log('evento pronto da inviare alle API', newEvent)
         // fetch()
-        const AGENDA_URL = 'https://striveschool-api.herokuapp.com/api/agenda/'
 
         fetch(AGENDA_URL, {
           // ora il secondo parametro SERVE, perchè dobbiamo utilizzare il metodo POST, che non è il default!
           method: 'POST',
           body: JSON.stringify(newEvent), // inviamo l'evento da aggiungere a DB! però body accetta solo stringhe!!
           headers: {
+            // Authorization: 'blablabla' // <-- autorizzazione per l'API, in questo caso non serve!
             'Content-Type': 'application/json', // informa l'API che la stringa che mandiamo nel body in realtà va parsata!
           },
         })
