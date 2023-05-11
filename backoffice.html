@@ -48,7 +48,7 @@
     <div class="container">
       <div class="row justify-content-center mt-3">
         <div class="col-12 col-md-8 text-center">
-          <h2>EpiTicket Store - Backoffice page</h2>
+          <h2>Backoffice page - Nuovo Evento</h2>
           <form class="mt-5 text-start" id="event-form">
             <div class="mb-3">
               <label for="name" class="form-label">Nome evento</label>
@@ -95,6 +95,13 @@
             <button type="submit" class="btn btn-primary" id="save-button">
               CREA EVENTO
             </button>
+            <button
+              type="button"
+              class="btn btn-danger d-none"
+              id="delete-button"
+            >
+              ELIMINA EVENTO
+            </button>
           </form>
         </div>
       </div>
@@ -119,9 +126,37 @@
 
       if (eventId) {
         // modalità MODIFICA
+        // cambio titolo
+        document.getElementsByTagName('h2')[0].innerText =
+          'Backoffice page - Modifica evento'
+        // cambio label bottone
+        document.getElementById('save-button').innerText = 'MODIFICA EVENTO'
+        // faccio comparire il bottone delete
+        let deleteButton = document.getElementById('delete-button')
+        deleteButton.classList.remove('d-none')
+        deleteButton.addEventListener('click', () => {
+          fetch(AGENDA_URL + eventId, {
+            method: 'DELETE',
+            // non c'è body
+            // non c'è quindi content-type
+          })
+            .then((res) => {
+              if (res.ok) {
+                alert('eliminazione completata con successo')
+                location.assign('./index.html')
+              } else {
+                throw new Error("Problema nell'eliminazione dell'evento")
+              }
+            })
+            .catch((err) => {
+              console.log(err)
+            })
+        })
+
         // ora che ho l'evento da modificare, devo fare una fetch() di tipo GET e recuperare i dettagli di questo evento!
         // faccio una get specifica per ottenere i dettagli di un solo evento: l'evento con id eventId
         fetch(AGENDA_URL + eventId)
+          // https://striveschool-api.herokuapp.com/api/agenda/645cb817dfde320014cd7a54
           .then((res) => {
             if (res.ok) {
               return res.json()
@@ -134,11 +169,15 @@
               'DATI DEL SINGOLO EVENTO, RECUPERATO TRAMITE GET SINGOLA',
               event
             )
+            // ripopoliamo il form, finalmente
+            document.getElementById('name').value = event.name
+            document.getElementById('description').value = event.description
+            document.getElementById('price').value = event.price
+            document.getElementById('time').value = event.time.split('.000Z')[0] // trucchetto per ripopolare correttamente un input date
           })
           .catch((error) => {
             console.log(error)
           })
-        // https://striveschool-api.herokuapp.com/api/agenda/645cb817dfde320014cd7a54
       } else {
         // modalità CREAZIONE
       }
@@ -173,9 +212,14 @@
         console.log('evento pronto da inviare alle API', newEvent)
         // fetch()
 
-        fetch(AGENDA_URL, {
+        // 2 sole cose differiscono da una POST a una PUT
+        // 1) il metodo
+        // 2) l'indirizzo (perchè una POST si fa su AGENDA_URL, l'indirizzo generico! mentre una PUT deve selezionare
+        // un elemento in particolare, quindi c'è bisogno dell'ID)
+
+        fetch(eventId ? AGENDA_URL + eventId : AGENDA_URL, {
           // ora il secondo parametro SERVE, perchè dobbiamo utilizzare il metodo POST, che non è il default!
-          method: 'POST',
+          method: eventId ? 'PUT' : 'POST',
           body: JSON.stringify(newEvent), // inviamo l'evento da aggiungere a DB! però body accetta solo stringhe!!
           headers: {
             // Authorization: 'blablabla' // <-- autorizzazione per l'API, in questo caso non serve!
@@ -187,7 +231,8 @@
             console.log('RESPONSE DELLA CHIAMATA POST', res)
             if (res.ok) {
               // il nuovo evento è stato salvato!! yeeee
-              alert('EVENTO SALVATO!')
+              alert(eventId ? 'EVENTO MODIFICATO!' : 'EVENTO CREATO!')
+              location.assign('/index.html') // riporto alla pagina home
             } else {
               // 400, 404
               alert('ERRORE NEL SALVATAGGIO')
@@ -206,3 +251,9 @@
     ></script>
   </body>
 </html>
+
+<!-- SPECCHIETTO PER GLI URL DA USARE CON I VARI METODI -->
+<!-- GET: funziona sia con un indirizzo "GENERICO" (/agenda) sia con un indirizzo "SPECIFICO" (/agenda/645ccab8dfde320014cd7a5b) -->
+<!-- POST: funziona SOLO sull'indirizzo "GENERICO" (/agenda) -->
+<!-- PUT: funziona SOLO sull'indirizzo "SPECIFICO" (/agenda/645ccab8dfde320014cd7a5b) -->
+<!-- DELETE: funziona SOLO sull'indirizzo "SPECIFICO" (/agenda/645ccab8dfde320014cd7a5b) -->
